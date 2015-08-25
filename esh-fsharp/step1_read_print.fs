@@ -21,5 +21,6 @@ let rec rep() =
 
 [<EntryPoint>]
 let main args =
-  rep() |> ignore
+  test() |> ignore
+  // rep() |> ignore
   0
