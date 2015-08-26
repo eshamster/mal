@@ -9,11 +9,13 @@ type MalList(parsed_list:MalType list) = class
   inherit MalType()
   member this.list = parsed_list
   override this.toString : string =
-    let mutable str_list = "("
+    let mutable str_list = []
     this.list |> List.iter(fun x ->
-                             str_list <- str_list + x.toString + " ")
-    str_list <- str_list + ")"
-    str_list
+                             str_list <- x.toString :: str_list)
+    str_list <- List.rev str_list
+    let internal_str = str_list |>
+                         List.reduce (fun r s -> r + " " + s)
+    "(" + internal_str + ")"
   end
 
 type MalSymbol(symbol_name:string) = class
