@@ -47,13 +47,13 @@ let private read_str (str:string) : Reader =
 
 let rec private read_form (reader:Reader) =
   let read_list (reader:Reader) : MalType =
-    let mutable list = []
-    while reader.peek <> ")" do
-      if reader.peek = "" then
-        failwith "ReaderError: Unmatched parenthesis"
-      list <- read_form reader :: list
-    reader.next |> ignore
-    new MalList(List.rev list) :> _
+    let rec rec_read_list (result:MalType list) : MalType list =
+      match reader.peek with
+        | ")" -> reader.next |> ignore
+                 List.rev result
+        | ""  -> failwith "ReaderError: Unmatched parenthesis"
+        | _ -> rec_read_list (read_form reader :: result)
+    new MalList(rec_read_list []) :> _
   
   let read_atom (reader:Reader) : MalType =
     let str = reader.next
