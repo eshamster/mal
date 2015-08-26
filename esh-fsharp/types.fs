@@ -29,3 +29,9 @@ type MalNumber(parsed_num:int) = class
   member this.number = parsed_num
   override this.toString : string = string this.number
   end
+
+type MalError(error_msg:string) = class
+  inherit MalType()
+  member this.msg = error_msg
+  override this.toString : string = this.msg
+  end

@@ -29,7 +29,9 @@ let private tokenizer (str:string) =
     let m = Regex.Match(str, "^[\s,]*(" + reg + ")(.*$)")
     if m.Success then
       let values = [ for x in m.Groups -> x.Value ]
-      { token = values.[1] ; rest = List.last values }
+      let token = values.[1]
+      // printfn "token: '%s', rest: '%s'" token (List.last values)
+      { token = token ; rest = List.last values }
     else
       failwith ("ReaderError: this string has no valid token: " + str)
     
@@ -38,6 +40,8 @@ let private tokenizer (str:string) =
       result
     else
       let tr = cut_down_token_by_regex rest token_reg
+      if tr.rest = rest then
+        failwith ("ReaderError: this string has no valid token: " + rest)
       if tr.token <> "" then
         rec_tokenizer (tr.token :: result) tr.rest
       else
@@ -80,5 +84,8 @@ let rec private read_form (reader:Reader) =
           -> read_quote reader
     | _ -> read_atom reader
 
-let read_str (str:string) : MalType = 
-  read_form (new Reader(tokenizer str))
+let read_str (str:string) : MalType =
+  try
+    read_form (new Reader(tokenizer str))
+  with
+    | Failure msg -> new MalError(msg) :> _
