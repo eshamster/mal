@@ -1,17 +1,16 @@
 open System
+open Mal.Types
 open Mal.Reader
+open Mal.Printer
 
-let READ str =
-  str
+let READ (str:string) : MalType =
+  read_str str
 
-let EVAL str =
-  str
+let EVAL (data:MalType) : MalType =
+  data
 
-let PRINT str =
-  printfn "%s" str
-  str
-
-let ignore _ = ()
+let PRINT (data:MalType) : unit =
+  printfn "%s" (pr_str data)
 
 let rec rep() =
   printf "user> "
@@ -21,6 +20,5 @@ let rec rep() =
 
 [<EntryPoint>]
 let main args =
-  test() |> ignore
-  // rep() |> ignore
+  rep() |> ignore
   0

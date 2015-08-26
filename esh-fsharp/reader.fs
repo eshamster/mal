@@ -41,10 +41,6 @@ let private tokenizer (str:string) =
       rec_tokenizer (tr.token.Trim() :: result) tr.rest
   rec_tokenizer [] str |> List.rev
 
-let private read_str (str:string) : Reader = 
-  let tokens = tokenizer str
-  new Reader(tokens)
-
 let rec private read_form (reader:Reader) =
   let read_list (reader:Reader) : MalType =
     let rec rec_read_list (result:MalType list) : MalType list =
@@ -68,9 +64,5 @@ let rec private read_form (reader:Reader) =
   else
     read_atom reader
 
-let test() =
-  // tokenizer ",, ,,(12 13 1)" |> List.iter (fun x -> printfn "%s" x)
-  let reader = read_str "(12 (13 (3 2) 3) 1)"
-  let tokens = read_form reader
-  printfn "%s" tokens.toString
-  0
+let read_str (str:string) : MalType = 
+  read_form (new Reader(tokenizer str))
