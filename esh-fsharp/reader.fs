@@ -23,10 +23,10 @@ type Reader(tokens : string list) = class
 type private TokenAndRest = { token: string ; rest: string }
 
 let private tokenizer (str:string) =
-  let token_reg = "[\s,]*(~@|[\[\]{}()'`~^@]|\"(?:\\.|[^\\\"])*\"|;.*|[^\s\[\]{}('\"`,;)]*)"
+  let token_reg = "(~@|[\[\]{}()'`~^@]|\"(.|(\\\"))*\"|;.*|[^\s\[\]{}('\"`,;)]*)"
   
   let cut_down_token_by_regex (str:string) (reg:string) =
-    let m = Regex.Match(str, "^(" + reg + ")(.*$)")
+    let m = Regex.Match(str, "^[\s,]*(" + reg + ")(.*$)")
     if m.Success then
       let values = [ for x in m.Groups -> x.Value ]
       { token = values.[1] ; rest = List.last values }
@@ -38,7 +38,10 @@ let private tokenizer (str:string) =
       result
     else
       let tr = cut_down_token_by_regex rest token_reg
-      rec_tokenizer (tr.token.Trim() :: result) tr.rest
+      if tr.token <> "" then
+        rec_tokenizer (tr.token :: result) tr.rest
+      else
+        rec_tokenizer result tr.rest
   rec_tokenizer [] str |> List.rev
 
 let rec private read_form (reader:Reader) =
@@ -50,6 +53,19 @@ let rec private read_form (reader:Reader) =
         | ""  -> failwith "ReaderError: Unmatched parenthesis"
         | _ -> rec_read_list (read_form reader :: result)
     new MalList(rec_read_list []) :> _
+
+  let read_quote (reader:Reader) : MalType =
+    let quote_symbol = reader.next
+    if reader.peek = "" then
+      failwith "ReaderError: Quote requires one argument"
+    let quote_name =
+      match quote_symbol with
+        | "'" -> "quote"
+        | "`" -> "quasiquote"
+        | "~" -> "unquote"
+        | "~@" -> "splice-unquote"
+        | _ -> failwith "ReaderError: \"" + quote_symbol + "\" is not a quote symbol"
+    new MalList([ new MalSymbol(quote_name) ; read_form reader]) :> _
   
   let read_atom (reader:Reader) : MalType =
     let str = reader.next
@@ -57,12 +73,12 @@ let rec private read_form (reader:Reader) =
       | (true, int) -> new MalNumber(int) :> _
       | _ -> new MalSymbol(str) :> _
   
-  let first = reader.peek
-  if first = "(" then
-    reader.next |> ignore
-    read_list reader
-  else
-    read_atom reader
+  match reader.peek with
+    | "(" -> reader.next |> ignore
+             read_list reader
+    | "'" | "`" | "~" | "~@"
+          -> read_quote reader
+    | _ -> read_atom reader
 
 let read_str (str:string) : MalType = 
   read_form (new Reader(tokenizer str))
