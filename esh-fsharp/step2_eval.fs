@@ -1,4 +1,5 @@
 open System
+open System.Collections.Generic;
 open Mal.Types
 open Mal.Reader
 open Mal.Printer
@@ -20,5 +21,8 @@ let rec rep() =
 
 [<EntryPoint>]
 let main args =
+  
+  let d = new Dictionary<string, MalType>()
+  
   rep() |> ignore
   0
