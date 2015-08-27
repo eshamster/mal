@@ -3,8 +3,8 @@ module Mal.Env
 open System.Collections.Generic;
 open Mal.Types
 
-type Env() = class
-  let mutable outer = Option<Env>.None
+type Env(its_outer:Env option) = class
+  let mutable outer = its_outer
   let data = new Dictionary<string, MalType>()
 
   member this.Set (key:string) (value:MalType) : _ =
