@@ -5,8 +5,8 @@ open Mal.Types
 open Mal.Reader
 open Mal.Printer
 
-let MakeNumberMulFunc (fn:int -> int -> int) : MalFunc =
-  new MalFunc(fun args ->
+let MakeNumberMulFunc (fn:int -> int -> int) : MalBuiltinFunc =
+  new MalBuiltinFunc(fun args ->
               new MalNumber (fn (args.[0] :?> MalNumber).Get
                                 (args.[1] :?> MalNumber).Get)
               :> _)
@@ -98,9 +98,9 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
             | "do"   -> eval_do (List.tail l.Get) env
             | "if"   -> eval_if (List.tail l.Get) env
             | _ -> let list = (eval_ast l env :?> MalList).Get
-                   (List.head list :?> MalFunc).Call (List.tail list)
+                   (List.head list :?> MalBuiltinFunc).Call (List.tail list)
         | _ -> let list = (eval_ast l env :?> MalList).Get
-               (List.head list :?> MalFunc).Call (List.tail list)
+               (List.head list :?> MalBuiltinFunc).Call (List.tail list)
     | _ -> eval_ast data env
 
 let READ (str:string) : MalType =
