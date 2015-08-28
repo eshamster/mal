@@ -69,6 +69,24 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
       | 1 -> EVAL (List.head rest) env
       | 0 -> failwith "Syntax Error: 'do' requires 1 or more expressions"
       | _ -> eval_do (List.tail rest) env
+
+  let eval_if (rest:MalType list) (env:Env) : MalType =
+    if rest.Length < 2 || rest.Length > 3 then
+      failwith "SyntaxError: 'if' requires 2 or 3 exporessions"
+    
+    let eval_false() : MalType =
+      match rest.Length with
+        | 2 -> new MalNil() :> _
+        | 3 -> EVAL rest.[2] env
+        | _ -> failwith "SyntaxError: unknown exception in EVAL/eval_if/eval_false"
+        
+    match (EVAL rest.[0] env) with
+      | :? MalNil -> eval_false()
+      | :? MalBool as b ->
+        match b.Get with
+          | true -> EVAL rest.[1] env
+          | false -> eval_false()
+      | _ -> failwith "SyntaxError: 'if' requires true, false or nil as the first argument"
       
   match data with
     | :? MalList as l ->
@@ -78,6 +96,7 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
             | "def!" -> eval_def_ex (List.tail l.Get) env
             | "let*" -> eval_let_ast (List.tail l.Get) env
             | "do"   -> eval_do (List.tail l.Get) env
+            | "if"   -> eval_if (List.tail l.Get) env
             | _ -> let list = (eval_ast l env :?> MalList).Get
                    (List.head list :?> MalFunc).Call (List.tail list)
         | _ -> let list = (eval_ast l env :?> MalList).Get
