@@ -63,6 +63,12 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
     let new_env = new Env(Some env)
     rec_set_to_env (rest.[0] :?> MalList).Get new_env
     EVAL rest.[1] new_env
+
+  let rec eval_do (rest:MalType list) (env:Env) : MalType =
+    match rest.Length with
+      | 1 -> EVAL (List.head rest) env
+      | 0 -> failwith "Syntax Error: 'do' requires 1 or more expressions"
+      | _ -> eval_do (List.tail rest) env
       
   match data with
     | :? MalList as l ->
@@ -71,6 +77,7 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
           match s.Get with
             | "def!" -> eval_def_ex (List.tail l.Get) env
             | "let*" -> eval_let_ast (List.tail l.Get) env
+            | "do"   -> eval_do (List.tail l.Get) env
             | _ -> let list = (eval_ast l env :?> MalList).Get
                    (List.head list :?> MalFunc).Call (List.tail list)
         | _ -> let list = (eval_ast l env :?> MalList).Get

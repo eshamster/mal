@@ -48,7 +48,7 @@ type MalNil() = class
 type MalFunc(fn_process:MalType list -> MalType) = class
   inherit MalType()
   member this.fn = fn_process
-  override this.ToString : string = ""
+  override this.ToString : string = "#"
   member this.Call (args:MalType list) : MalType =
     fn_process args
   end
