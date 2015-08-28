@@ -75,7 +75,11 @@ let rec private read_form (reader:Reader) =
     let str = reader.next
     match Int32.TryParse(str) with
       | (true, int) -> new MalNumber(int) :> _
-      | _ -> new MalSymbol(str) :> _
+      | _ -> match str with
+               | "true"  -> new MalBool(true) :> _
+               | "false" -> new MalBool(false) :> _
+               | "nil"   -> new MalNil() :> _
+               | _ -> new MalSymbol(str) :> _
   
   match reader.peek with
     | "(" -> reader.next |> ignore

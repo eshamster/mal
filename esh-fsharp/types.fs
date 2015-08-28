@@ -33,6 +33,18 @@ type MalNumber(parsed_num:int) = class
   override this.ToString : string = string this.number
   end
 
+type MalBool(parsed_bool:bool) = class
+  inherit MalType()
+  member this.value = parsed_bool
+  member this.Get : bool = this.value
+  override this.ToString : string = if this.value then "true" else "false"
+  end
+
+type MalNil() = class
+  inherit MalType()
+  override this.ToString : string = "nil"
+  end
+
 type MalFunc(fn_process:MalType list -> MalType) = class
   inherit MalType()
   member this.fn = fn_process
