@@ -11,7 +11,7 @@ let MakeNumberMulFunc (fn:int -> int -> int) : MalBuiltinFunc =
                                 (args.[1] :?> MalNumber).Get)
               :> _)
   
-let repl_env = new Env(Option<Env>.None)
+let repl_env = new Env()
 
 let init () : _ =
   repl_env.Set "+" (MakeNumberMulFunc (fun x y -> x + y))
