@@ -1,23 +1,10 @@
 open System
 open System.Collections.Generic;
+open Mal.Core
 open Mal.Env
 open Mal.Types
 open Mal.Reader
 open Mal.Printer
-
-let MakeNumberMulFunc (fn:int -> int -> int) : MalBuiltinFunc =
-  new MalBuiltinFunc(fun args ->
-              new MalNumber (fn (args.[0] :?> MalNumber).Get
-                                (args.[1] :?> MalNumber).Get)
-              :> _)
-  
-let repl_env = new Env()
-
-let init () : _ =
-  repl_env.Set "+" (MakeNumberMulFunc (fun x y -> x + y))
-  repl_env.Set "-" (MakeNumberMulFunc (fun x y -> x - y))
-  repl_env.Set "/" (MakeNumberMulFunc (fun x y -> x / y))
-  repl_env.Set "*" (MakeNumberMulFunc (fun x y -> x * y))
 
 let rec EVAL (data:MalType) (env:Env) : MalType =
   let eval_ast (ast:MalType) (env:Env) : MalType =

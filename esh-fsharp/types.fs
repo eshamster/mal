@@ -3,6 +3,8 @@ module Mal.Types
 [<AbstractClass>]
 type MalType() = class
   abstract member ToString : string
+  abstract member Equals : MalType -> bool
+  default this.Equals (x:MalType) : bool = failwith "The Equals of this type is not implemented"
   end
 
 type MalList(parsed_list:MalType list) = class
@@ -13,10 +15,30 @@ type MalList(parsed_list:MalType list) = class
     let mutable str_list = []
     this.list |> List.iter(fun x ->
                              str_list <- x.ToString :: str_list)
-    str_list <- List.rev str_list
-    let internal_str = str_list |>
-                         List.reduce (fun r s -> r + " " + s)
+    let internal_str : string =
+      match str_list.IsEmpty with
+        | false -> str_list <- List.rev str_list
+                   str_list |> List.reduce (fun r s -> r + " " + s)
+        | true -> ""
     "(" + internal_str + ")"
+
+  override this.Equals (target:MalType) : bool =
+    match target with
+      | :? MalList as l ->
+        if this.Get.Length <> l.Get.Length then
+          false
+        else
+          let rec rec_compare_list (l1:MalType list) (l2:MalType list) : bool =
+            assert (l1.Length = l2.Length)
+            if l1.Length = 0 then
+              true
+            else
+              if ((List.head l1).Equals (List.head l2)) then
+                rec_compare_list (List.tail l1) (List.tail l2)
+              else
+                false  
+          rec_compare_list this.Get l.Get
+      | _ -> false
   end
 
 type MalSymbol(symbol_name:string) = class
@@ -31,6 +53,10 @@ type MalNumber(parsed_num:int) = class
   member this.number = parsed_num
   member this.Get : int = this.number
   override this.ToString : string = string this.number
+  override this.Equals (target:MalType) : bool =
+    match target with
+      | :? MalNumber as n -> this.Get = n.Get
+      | _ -> false
   end
 
 type MalBool(parsed_bool:bool) = class
@@ -38,11 +64,19 @@ type MalBool(parsed_bool:bool) = class
   member this.value = parsed_bool
   member this.Get : bool = this.value
   override this.ToString : string = if this.value then "true" else "false"
+  override this.Equals (target:MalType) : bool =
+    match target with
+      | :? MalBool as b -> this.Get = b.Get
+      | _ -> false
   end
 
 type MalNil() = class
   inherit MalType()
   override this.ToString : string = "nil"
+  override this.Equals (target:MalType) : bool =
+    match target with
+      | :? MalNil -> true
+      | _ -> false
   end
 
 type MalBuiltinFunc(fn_process:MalType list -> MalType) = class
