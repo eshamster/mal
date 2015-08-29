@@ -87,7 +87,11 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
           | true -> EVAL rest.[1] env
           | false -> eval_false()
       | _ -> failwith "SyntaxError: 'if' requires true, false or nil as the first argument"
-      
+
+  let eval_fn_ast (rest:MalType list) (env:Env) : MalType =
+    let binds : seq<MalSymbol> = Seq.cast (rest.[0] :?> MalList).Get
+    new MalFunc(List.ofSeq binds, List.last rest) :> _
+
   match data with
     | :? MalList as l ->
       match (List.head l.Get) with
@@ -97,10 +101,14 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
             | "let*" -> eval_let_ast (List.tail l.Get) env
             | "do"   -> eval_do (List.tail l.Get) env
             | "if"   -> eval_if (List.tail l.Get) env
+            | "fn*"  -> eval_fn_ast (List.tail l.Get) env
             | _ -> let list = (eval_ast l env :?> MalList).Get
                    (List.head list :?> MalBuiltinFunc).Call (List.tail list)
-        | _ -> let list = (eval_ast l env :?> MalList).Get
-               (List.head list :?> MalBuiltinFunc).Call (List.tail list)
+        | :? MalList as head_l -> EVAL (eval_ast l env) env
+        | :? MalFunc as f ->
+          let new_env = new Env(Some env, Some f.Binds, List.tail l.Get |> Some)
+          EVAL f.Procedure new_env
+        | _ -> failwith "SyntaxError: The head of the list must be a function or a speciral form"
     | _ -> eval_ast data env
 
 let READ (str:string) : MalType =

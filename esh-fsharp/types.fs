@@ -48,9 +48,18 @@ type MalNil() = class
 type MalBuiltinFunc(fn_process:MalType list -> MalType) = class
   inherit MalType()
   member this.fn = fn_process
-  override this.ToString : string = "#"
+  override this.ToString : string = "#<built-in function>"
   member this.Call (args:MalType list) : MalType =
     fn_process args
+  end
+
+type MalFunc(its_binds:MalSymbol list, its_procedure:MalType) = class
+  inherit MalType()
+  let binds = its_binds
+  let procedure = its_procedure
+  override this.ToString : string = "#<function>"
+  member this.Binds = binds
+  member this.Procedure = procedure
   end
 
 type MalError(error_msg:string) = class
