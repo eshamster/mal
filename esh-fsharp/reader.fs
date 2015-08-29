@@ -49,11 +49,12 @@ let private tokenizer (str:string) =
   rec_tokenizer [] str |> List.rev
 
 let rec private read_form (reader:Reader) =
-  let read_list (reader:Reader) : MalType =
+  let read_list (reader:Reader) (right_paren:string) : MalType =
     let rec rec_read_list (result:MalType list) : MalType list =
       match reader.peek with
-        | ")" -> reader.next |> ignore
-                 List.rev result
+        | x when x = right_paren ->
+          reader.next |> ignore
+          List.rev result
         | ""  -> failwith "ReaderError: Unmatched parenthesis"
         | _ -> rec_read_list (read_form reader :: result)
     new MalList(rec_read_list []) :> _
@@ -83,7 +84,9 @@ let rec private read_form (reader:Reader) =
   
   match reader.peek with
     | "(" -> reader.next |> ignore
-             read_list reader
+             read_list reader ")"
+    | "[" -> reader.next |> ignore
+             read_list reader "]"
     | "'" | "`" | "~" | "~@"
           -> read_quote reader
     | _ -> read_atom reader
