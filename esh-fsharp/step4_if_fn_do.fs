@@ -58,8 +58,8 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
       | _ -> eval_do (List.tail rest) env
 
   let eval_if (rest:MalType list) (env:Env) : MalType =
-    if rest.Length < 2 || rest.Length > 3 then
-      failwith "SyntaxError: 'if' requires 2 or 3 exporessions"
+    if rest.Length < 2 then
+      failwith "SyntaxError: 'if' requires more than 2 expressions"
     
     let eval_false() : MalType =
       match rest.Length with
@@ -73,7 +73,7 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
         match b.Get with
           | true -> EVAL rest.[1] env
           | false -> eval_false()
-      | _ -> failwith "SyntaxError: 'if' requires true, false or nil as the first argument"
+      | _ -> EVAL rest.[1] env
 
   let eval_fn_ast (rest:MalType list) (env:Env) : MalType =
     let binds : seq<MalSymbol> = Seq.cast (rest.[0] :?> MalList).Get
