@@ -91,7 +91,7 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
             | "fn*"  -> eval_fn_ast (List.tail l.Get) env
             | _ -> let list = (eval_ast l env :?> MalList).Get
                    (List.head list :?> MalBuiltinFunc).Call (List.tail list)
-        | :? MalList as head_l -> EVAL (eval_ast l env) env
+        | :? MalList -> EVAL (eval_ast l env) env
         | :? MalFunc as f ->
           let new_env = new Env(Some env, Some f.Binds, List.tail l.Get |> Some)
           EVAL f.Procedure new_env

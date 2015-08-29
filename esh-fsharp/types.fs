@@ -59,6 +59,17 @@ type MalNumber(parsed_num:int) = class
       | _ -> false
   end
 
+type MalString(parsed_str:string) = class
+  inherit MalType()
+  let str = parsed_str
+  member this.Get : string = str
+  override this.ToString : string = "\"" + str + "\""
+  override this.Equals (target:MalType) : bool =
+    match target with
+      | :? MalString as s -> this.Get = s.Get
+      | _ -> false
+  end
+
 type MalBool(parsed_bool:bool) = class
   inherit MalType()
   member this.value = parsed_bool

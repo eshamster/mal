@@ -63,7 +63,7 @@ let private set_eq_funcs () : _ =
       fun args ->
         new MalBool(
           if args.Length <> 2 then
-            failwith "SyntaxError: '=' requires 2 arguments"
+            failwith (sprintf "SyntaxError: '=' requires 2 arguments but takes %d argument[s]" args.Length)
           args.[0].Equals(args.[1])) :> _)
     
   repl_env.Set "=" (make_eq_func())

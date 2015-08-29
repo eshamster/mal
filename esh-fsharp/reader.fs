@@ -23,7 +23,8 @@ type Reader(tokens : string list) = class
 type private TokenAndRest = { token: string ; rest: string }
 
 let private tokenizer (str:string) =
-  let token_reg = "(~@|[\[\]{}()'`~^@]|\"(.|(\\\"))*\"|;.*|[^\s\[\]{}('\"`,;)]*)"
+  // TODO: Fix: This can't match like "ab\"cd" 
+  let token_reg = "(~@|[\[\]{}()'`~^@]|\"([^\"]|(\\\\\\\"))*\"|;.*|[^\s\[\]{}('\"`,;)]*)"
   
   let cut_down_token_by_regex (str:string) (reg:string) =
     let m = Regex.Match(str, "^[\s,]*(" + reg + ")(.*$)")
@@ -80,6 +81,8 @@ let rec private read_form (reader:Reader) =
                | "true"  -> new MalBool(true) :> _
                | "false" -> new MalBool(false) :> _
                | "nil"   -> new MalNil() :> _
+               | x when Regex.Match(x, "^\".*\"$").Success ->
+                 new MalString(x.[1..(x.Length - 2)]) :> _
                | _ -> new MalSymbol(str) :> _
   
   match reader.peek with
