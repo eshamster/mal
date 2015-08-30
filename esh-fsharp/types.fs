@@ -13,18 +13,27 @@ type MalType() = class
 
 type MalList(parsed_list:MalType list) = class
   inherit MalType()
-  member this.list = parsed_list
-  member this.Get : MalType list = this.list
-  override this.ToString : string =
+  let list = parsed_list
+  
+  let ToString_Generic (to_str:MalType -> string) : string =
     let mutable str_list = []
-    this.list |> List.iter(fun x ->
-                             str_list <- x.ToString :: str_list)
+    list |> List.iter(fun x ->
+                             str_list <- (to_str x) :: str_list)
     let internal_str : string =
       match str_list.IsEmpty with
         | false -> str_list <- List.rev str_list
                    str_list |> List.reduce (fun r s -> r + " " + s)
         | true -> ""
     "(" + internal_str + ")"
+  
+  member this.Get : MalType list = list
+    
+  override this.ToString : string =
+    ToString_Generic (fun x -> x.ToString)
+  override this.ToStringReadably : string =
+    ToString_Generic (fun x -> x.ToStringReadably)
+  override this.ToStringWithEscape : string =
+    ToString_Generic (fun x -> x.ToStringWithEscape)
 
   override this.Equals (target:MalType) : bool =
     match target with
@@ -68,7 +77,8 @@ type MalString(parsed_str:string) = class
   let str = parsed_str
   member this.Get : string = str
   override this.ToString : string = "\"" + str + "\""
-  override this.ToStringReadably : string = str
+  override this.ToStringReadably : string =
+    str.Replace("\\\"", "\"")
   override this.ToStringWithEscape : string =
     this.ToString.Replace("\\", "\\\\").Replace("\"", "\\\"")
   override this.Equals (target:MalType) : bool =

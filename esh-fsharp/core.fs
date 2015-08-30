@@ -33,7 +33,7 @@ let private set_str_funcs () : _ =
     new MalBuiltinFunc(
       fun args ->
         new MalString(
-          args |> List.map (fun x -> x.ToStringReadably)
+          args |> List.map (fun x -> x.ToStringReadably.Replace("\"", "\\\""))
                |> String.concat "") :> _)
     
   let make_pr_str_func () : MalBuiltinFunc =
