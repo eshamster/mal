@@ -55,7 +55,9 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
     match rest.Length with
       | 1 -> EVAL (List.head rest) env
       | 0 -> failwith "Syntax Error: 'do' requires 1 or more expressions"
-      | _ -> eval_do (List.tail rest) env
+      | _ ->
+        EVAL (List.head rest) env |> ignore
+        eval_do (List.tail rest) env
 
   let eval_if (rest:MalType list) (env:Env) : MalType =
     if rest.Length < 2 then
