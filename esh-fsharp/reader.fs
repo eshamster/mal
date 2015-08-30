@@ -23,8 +23,7 @@ type Reader(tokens : string list) = class
 type private TokenAndRest = { token: string ; rest: string }
 
 let private tokenizer (str:string) =
-  // TODO: Fix: This can't match like "ab\"cd" 
-  let token_reg = "(~@|[\[\]{}()'`~^@]|\"([^\"]|(\\\\\\\"))*\"|;.*|[^\s\[\]{}('\"`,;)]*)"
+  let token_reg = "(~@|[\[\]{}()'`~^@]|\"([^\\\\\"]|(\\\\\\\"))*\"|;.*|[^\s\[\]{}('\"`,;)]*)"
   
   let cut_down_token_by_regex (str:string) (reg:string) =
     let m = Regex.Match(str, "^[\s,]*(" + reg + ")(.*$)")
