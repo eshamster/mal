@@ -77,8 +77,14 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
 
   let eval_fn_ast (rest:MalType list) (env:Env) : MalType =
     let binds : seq<MalSymbol> = Seq.cast (rest.[0] :?> MalList).Get
-    new MalFunc(List.ofSeq binds, List.last rest) :> _
+    new MalFunc(List.ofSeq binds, List.last rest, env) :> _
 
+  // Body of EVAL //
+  if false then
+    printfn "Eval target: %s" data.ToString
+    if data.ToString = "x" then
+      printfn "f: %s" (env.Get "f").ToString
+      printfn "x: %s" (env.Get "x").ToString
   match data with
     | :? MalList as l ->
       match (List.head l.Get) with
@@ -89,13 +95,15 @@ let rec EVAL (data:MalType) (env:Env) : MalType =
             | "do"   -> eval_do (List.tail l.Get) env
             | "if"   -> eval_if (List.tail l.Get) env
             | "fn*"  -> eval_fn_ast (List.tail l.Get) env
-            | _ -> let list = (eval_ast l env :?> MalList).Get
-                   (List.head list :?> MalBuiltinFunc).Call (List.tail list)
-        | :? MalList -> EVAL (eval_ast l env) env
+            | _ -> EVAL (eval_ast l env) env
+        | :? MalList as head_list->
+          let evaled = eval_ast l env
+          EVAL evaled env
+        | :? MalBuiltinFunc as f -> f.Call (List.tail l.Get)
         | :? MalFunc as f ->
-          let new_env = new Env(Some env, Some f.Binds, List.tail l.Get |> Some)
+          let new_env = new Env(Some (f.Env :?> Env), Some f.Binds, List.tail l.Get |> Some)
           EVAL f.Procedure new_env
-        | _ -> failwith "SyntaxError: The head of the list must be a function or a speciral form"
+        | _ -> failwith ("SyntaxError: The head of the list must be a function or a speciral form: " + l.ToString)
     | _ -> eval_ast data env
 
 let READ (str:string) : MalType =

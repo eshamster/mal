@@ -44,6 +44,7 @@ let private set_list_funcs () : _ =
           failwith "SyntaxError: This function requires one argument"
         match args.[0] with
           | :? MalList as s -> fn s.Get
+          | :? MalNil  as n -> fn []
           | _ -> failwith "SyntaxError: This function requires a list as the parameter")
     
   let make_emptyp_func () : MalBuiltinFunc =
@@ -57,7 +58,7 @@ let private set_list_funcs () : _ =
   repl_env.Set "empty?" (make_emptyp_func())
   repl_env.Set "count"  (make_count_func())
 
-let private set_eq_funcs () : _ =
+let private set_other_funcs () : _ =
   let make_eq_func () : MalBuiltinFunc =
     new MalBuiltinFunc(
       fun args ->
@@ -71,4 +72,4 @@ let private set_eq_funcs () : _ =
 let init () : _ =
   set_numeric_funcs()
   set_list_funcs()
-  set_eq_funcs()
+  set_other_funcs()

@@ -98,13 +98,15 @@ type MalBuiltinFunc(fn_process:MalType list -> MalType) = class
     fn_process args
   end
 
-type MalFunc(its_binds:MalSymbol list, its_procedure:MalType) = class
+type MalFunc(its_binds:MalSymbol list, its_procedure:MalType, its_env:obj) = class
   inherit MalType()
   let binds = its_binds
   let procedure = its_procedure
+  let env : obj = its_env
   override this.ToString : string = "#<function>"
   member this.Binds = binds
   member this.Procedure = procedure
+  member this.Env = env
   end
 
 type MalError(error_msg:string) = class
