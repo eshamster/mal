@@ -23,7 +23,7 @@ type Reader(tokens : string list) = class
 type private TokenAndRest = { token: string ; rest: string }
 
 let private tokenizer (str:string) =
-  let token_reg = "(~@|[\[\]{}()'`~^@]|\"(.|(\\\"))*\"|;.*|[^\s\[\]{}('\"`,;)]*)"
+  let token_reg = "(~@|[\[\]{}()'`~^@]|\"([^\\\\\"]|(\\\\\\\"))*\"|;.*|[^\s\[\]{}('\"`,;)]*)"
   
   let cut_down_token_by_regex (str:string) (reg:string) =
     let m = Regex.Match(str, "^[\s,]*(" + reg + ")(.*$)")
@@ -49,11 +49,12 @@ let private tokenizer (str:string) =
   rec_tokenizer [] str |> List.rev
 
 let rec private read_form (reader:Reader) =
-  let read_list (reader:Reader) : MalType =
+  let read_list (reader:Reader) (right_paren:string) : MalType =
     let rec rec_read_list (result:MalType list) : MalType list =
       match reader.peek with
-        | ")" -> reader.next |> ignore
-                 List.rev result
+        | x when x = right_paren ->
+          reader.next |> ignore
+          List.rev result
         | ""  -> failwith "ReaderError: Unmatched parenthesis"
         | _ -> rec_read_list (read_form reader :: result)
     new MalList(rec_read_list []) :> _
@@ -75,11 +76,19 @@ let rec private read_form (reader:Reader) =
     let str = reader.next
     match Int32.TryParse(str) with
       | (true, int) -> new MalNumber(int) :> _
-      | _ -> new MalSymbol(str) :> _
+      | _ -> match str with
+               | "true"  -> new MalBool(true) :> _
+               | "false" -> new MalBool(false) :> _
+               | "nil"   -> new MalNil() :> _
+               | x when Regex.Match(x, "^\".*\"$").Success ->
+                 new MalString(x.[1..(x.Length - 2)]) :> _
+               | _ -> new MalSymbol(str) :> _
   
   match reader.peek with
     | "(" -> reader.next |> ignore
-             read_list reader
+             read_list reader ")"
+    | "[" -> reader.next |> ignore
+             read_list reader "]"
     | "'" | "`" | "~" | "~@"
           -> read_quote reader
     | _ -> read_atom reader
