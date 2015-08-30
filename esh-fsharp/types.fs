@@ -3,8 +3,10 @@ module Mal.Types
 [<AbstractClass>]
 type MalType() = class
   abstract member ToString : string
+  abstract member ToStringReadably : string
   abstract member Equals : MalType -> bool
   default this.Equals (x:MalType) : bool = failwith "The Equals of this type is not implemented"
+  default this.ToStringReadably : string = this.ToString
   end
 
 type MalList(parsed_list:MalType list) = class
@@ -64,6 +66,7 @@ type MalString(parsed_str:string) = class
   let str = parsed_str
   member this.Get : string = str
   override this.ToString : string = "\"" + str + "\""
+  override this.ToStringReadably : string = str
   override this.Equals (target:MalType) : bool =
     match target with
       | :? MalString as s -> this.Get = s.Get

@@ -28,6 +28,15 @@ let private set_numeric_funcs () : _ =
   repl_env.Set ">"  (make_compare_func (fun x y -> x >  y))
   repl_env.Set ">=" (make_compare_func (fun x y -> x >= y))
 
+let private set_str_funcs () : _ =
+  let make_str_func () : MalBuiltinFunc =
+    new MalBuiltinFunc(
+      fun args ->
+        new MalString(
+          args |> List.map (fun x -> x.ToStringReadably)
+               |> String.concat "") :> _)
+
+  repl_env.Set "str" (make_str_func())
 
 let private set_list_funcs () : _ =
   let make_list_func () : MalBuiltinFunc =
@@ -84,5 +93,6 @@ let private set_other_funcs () : _ =
 
 let init () : _ =
   set_numeric_funcs()
+  set_str_funcs()
   set_list_funcs()
   set_other_funcs()
