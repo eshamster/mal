@@ -66,8 +66,21 @@ let private set_other_funcs () : _ =
           if args.Length <> 2 then
             failwith (sprintf "SyntaxError: '=' requires 2 arguments but takes %d argument[s]" args.Length)
           args.[0].Equals(args.[1])) :> _)
+
+  let make_not_func() : MalBuiltinFunc =
+    new MalBuiltinFunc(
+      fun args ->
+        new MalBool(
+          if args.Length <> 1 then
+            failwith (sprintf "SyntaxError: 'not' requires 1 argument but takes %d argument[s]" args.Length)
+          match args.[0] with
+            | :? MalNil -> true
+            | :? MalBool as b -> not (b.Get)
+            | :? MalList as l -> (l.Get).Length = 0
+            | _ -> false) :> _)
     
   repl_env.Set "=" (make_eq_func())
+  repl_env.Set "not" (make_not_func())
 
 let init () : _ =
   set_numeric_funcs()
