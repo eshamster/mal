@@ -14,21 +14,31 @@ type Env (its_outer:Env option, binds:MalSymbol list option, exprs:MalType list 
   
   do
     let err_msg = "InternalError: the length of binds and the length of exprs is not same in Env"
+    let bind_variadic (rest_binds:MalSymbol list) (rest_exprs:MalType list) : _ =
+      assert ((List.head rest_binds).Get = "&")
+      if rest_binds.Length <> 2 then
+        failwith "SyntaxError: the symbol is not directed to bind variadic parameteres"
+      set (List.last rest_binds).Get (new MalList(rest_exprs))
+      
     let rec bind (rest_binds:MalSymbol list) (rest_exprs:MalType list) : _ =
       assert (rest_binds.Length = rest_exprs.Length)
-      if not rest_binds.IsEmpty then
-        set (List.head rest_binds).Get (List.head rest_exprs)
-        bind (List.tail rest_binds) (List.tail rest_exprs)
+      if (not rest_binds.IsEmpty) then
+        match (List.head rest_binds).Get with
+          | "&" -> bind_variadic rest_binds rest_exprs
+          | key ->
+            if rest_exprs.IsEmpty then
+              failwith err_msg
+            set key (List.head rest_exprs)
+            bind (List.tail rest_binds) (List.tail rest_exprs)
+      else
+        if (not rest_exprs.IsEmpty) then
+          failwith err_msg
       
     match binds with
       | Some b ->
         match exprs with
-          | Some e ->
-            if b.Length <> e.Length then
-              failwith err_msg
-            else
-              bind b e
-          | None -> failwith err_msg
+          | Some e -> bind b e
+          | None -> bind b []
       | None ->
         match exprs with
           | Some _ -> failwith err_msg
