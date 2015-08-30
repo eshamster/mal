@@ -35,7 +35,15 @@ let private set_str_funcs () : _ =
         new MalString(
           args |> List.map (fun x -> x.ToStringReadably)
                |> String.concat "") :> _)
+    
+  let make_pr_str_func () : MalBuiltinFunc =
+    new MalBuiltinFunc(
+      fun args ->
+        new MalString(
+          args |> List.map (fun x -> x.ToStringWithEscape)
+               |> String.concat " ") :> _)
 
+  repl_env.Set "pr-str" (make_pr_str_func())
   repl_env.Set "str" (make_str_func())
 
 let private set_list_funcs () : _ =
