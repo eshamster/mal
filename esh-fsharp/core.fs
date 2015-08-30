@@ -43,8 +43,16 @@ let private set_str_funcs () : _ =
           args |> List.map (fun x -> x.ToStringWithEscape)
                |> String.concat " ") :> _)
 
-  repl_env.Set "pr-str" (make_pr_str_func())
+  let make_prn_func () : MalBuiltinFunc =
+    new MalBuiltinFunc(
+      fun args ->
+        printfn "%s" (args |> List.map (fun x -> x.ToString)
+                           |> String.concat " ")
+        new MalNil() :> _)
+
   repl_env.Set "str" (make_str_func())
+  repl_env.Set "pr-str" (make_pr_str_func())
+  repl_env.Set "prn" (make_prn_func())
 
 let private set_list_funcs () : _ =
   let make_list_func () : MalBuiltinFunc =
